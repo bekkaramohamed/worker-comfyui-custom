@@ -1,6 +1,4 @@
-# =======================================================
-# 🧱 Dockerfile - Custom Worker ComfyUI with Custom Nodes
-# =======================================================
+# syntax=docker/dockerfile:1.4
 
 FROM runpod/worker-comfyui:5.5.0-base
 
@@ -22,9 +20,8 @@ RUN apt-get update -y && apt-get install -y git || true && \
 # =======================================================
 # ⚙️ 2️⃣ Installation de UV + Upgrade PyTorch 2.9.0 (cu128)
 # =======================================================
-RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
-
-RUN yes | /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
+RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall -y torch torchvision torchaudio triton && \
     rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-* && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
       torch==2.9.0+cu128 \
