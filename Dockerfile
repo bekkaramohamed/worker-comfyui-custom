@@ -70,13 +70,19 @@ RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
 # =======================================================
 WORKDIR /workspace/runpod-slim/ComfyUI/custom_nodes
 
-RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
+RUN set -e && \
+    apt-get update -y && apt-get install -y --no-install-recommends git ca-certificates && \
+    update-ca-certificates && \
+    echo "🌐 Vérification Git + accès GitHub..." && \
+    git --version && curl -Is https://github.com >/dev/null 2>&1 && echo "✅ GitHub accessible." && \
+    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
     git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
     git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && \
     git clone --depth 1 https://github.com/AlUlkesh/ComfyUI-TiledDiffusion.git && \
     git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && \
-    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git
-
+    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && \
+    ls -1 && \
+    rm -rf /var/lib/apt/lists/*
 RUN for d in *; do \
       if [ -f "$d/requirements.txt" ]; then \
         echo "Installing deps for $d…" && \
