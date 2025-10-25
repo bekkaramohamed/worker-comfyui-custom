@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1.4
+FROM python:3.12-slim
 
-FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN mkdir -p /workspace && \
     if [ -d "/runpod-volume/runpod-slim" ]; then \
