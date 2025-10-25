@@ -42,8 +42,9 @@ RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
       --index-url https://download.pytorch.org/whl/cu124 && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install numpy==1.26.4 && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install sageattention && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/python -c "import torch; print(f'Torch version: {torch.__version__}, CUDA: {torch.version.cuda}')"
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -c "import torch; print(f'Torch version: {torch.__version__}, CUDA: {torch.version.cuda}')" && \
     rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-*
+
 
 
 # =======================================================
