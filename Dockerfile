@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 
-FROM runpod/worker-comfyui:5.5.0-base
+FROM runpod/comfyui:latest
 WORKDIR /workspace/runpod-slim/ComfyUI
 
 # =======================================================
