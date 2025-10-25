@@ -20,25 +20,28 @@ RUN apt-get update -y && apt-get install -y git || true && \
 # =======================================================
 # ⚙️ 2️⃣ Installation de UV + Upgrade PyTorch 2.9.0 (cu128)
 # =======================================================
+# =======================================================
+# ⚙️ 2️⃣ Installation de UV + PyTorch 2.9.0 (cu128)
+# =======================================================
 RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
     rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-* && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
-      torch==2.9.0+cu128 \
-      torchvision==0.24.0+cu128 \
-      torchaudio==2.9.0+cu128 \
-      triton==3.5.0 \
-      --extra-index-url https://download.pytorch.org/whl/cu128 && \
+        torch==2.9.0+cu128 \
+        torchvision==0.24.0+cu128 \
+        torchaudio==2.9.0+cu128 \
+        triton==3.5.0 \
+        --extra-index-url https://download.pytorch.org/whl/cu128 && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install numpy==1.26.4 sageattention && \
-    rm -rf /workspace/runpod-slim/ComfyUI/.venv/lib/python3.12/site-packages/nunchaku* && \
-    export TORCH_CUDA_ARCH_LIST="8.9" && \
-    export FORCE_CMAKE=1 && \
-    export MAX_JOBS=$(nproc) && \
-    export USE_TORCH_VERSION=2.9.0 && \
-    export UV_LINK_MODE=copy && \
+    rm -rf /workspace/runpod-slim/ComfyUI/.venv/lib/python3.12/site-packages/nunchaku*
+
+# =======================================================
+# ⚙️ 3️⃣ Compilation et installation de Nunchaku
+# =======================================================
+RUN TORCH_CUDA_ARCH_LIST="8.9" FORCE_CMAKE=1 MAX_JOBS=$(nproc) USE_TORCH_VERSION=2.9.0 UV_LINK_MODE=copy \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
-      git+https://github.com/nunchaku-tech/nunchaku.git@v1.0.0 \
-      --no-binary nunchaku --reinstall --no-cache
+        git+https://github.com/nunchaku-tech/nunchaku.git@v1.0.0 \
+        --no-binary nunchaku --reinstall --no-cache
 
 # =======================================================
 # 🧩 3️⃣ Installation des Custom Nodes requis
