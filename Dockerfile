@@ -75,14 +75,19 @@ RUN set -e && \
     apt-get install -y --no-install-recommends git ca-certificates curl && \
     update-ca-certificates && \
     echo "🌐 Vérification Git + accès GitHub..." && \
-    git --version && curl -Is https://github.com >/dev/null 2>&1 && echo "✅ GitHub accessible." && \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && sleep 5 && \
-    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && sleep 5 && \
-    git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && sleep 5 && \
-    git clone --depth 1 https://github.com/AlUlkesh/ComfyUI-TiledDiffusion.git && sleep 5 && \
-    git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && sleep 5 && \
-    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && sleep 5 && \
-    ls -1 && \
+    git --version && \
+    curl -Is https://github.com >/dev/null 2>&1 && echo "✅ GitHub accessible." && \
+    export GIT_TERMINAL_PROMPT=0 && \
+    echo "🧪 Test clone public avec octocat/Hello-World..." && \
+    git clone --depth 1 https://github.com/octocat/Hello-World.git && \
+    echo "✅ Test clone réussi, poursuite des installations..." && \
+    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && sleep 3 && \
+    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && sleep 3 && \
+    git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && sleep 3 && \
+    git clone --depth 1 https://github.com/AlUlkesh/ComfyUI-TiledDiffusion.git && sleep 3 && \
+    git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && sleep 3 && \
+    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && sleep 3 && \
+    echo "📂 Contenu du dossier : " && ls -1 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN for d in *; do \
