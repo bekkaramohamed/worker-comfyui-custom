@@ -14,6 +14,7 @@ WORKDIR /workspace/runpod-slim/ComfyUI
 # ⚙️ 2️⃣ PyTorch 2.9.0 (cu128) + nettoyage cache
 # =======================================================
 RUN apt update && apt install -y git && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv && \
     yes | /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
     rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-* && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
@@ -22,8 +23,7 @@ RUN apt update && apt install -y git && \
       torchaudio==2.9.0+cu128 \
       triton==3.5.0 \
       --extra-index-url https://download.pytorch.org/whl/cu128 && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install numpy==1.26.4 && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install sageattention && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install numpy==1.26.4 sageattention && \
     rm -rf /workspace/runpod-slim/ComfyUI/.venv/lib/python3.12/site-packages/nunchaku* && \
     export TORCH_CUDA_ARCH_LIST="8.9" && \
     export FORCE_CMAKE=1 && \
@@ -32,10 +32,7 @@ RUN apt update && apt install -y git && \
     export UV_LINK_MODE=copy && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
       git+https://github.com/nunchaku-tech/nunchaku.git@v1.0.0 \
-      --no-binary nunchaku \
-      --reinstall \
-      --no-cache
-
+      --no-binary nunchaku --no-cache
 
 # =======================================================
 # 🧩 3️⃣ Installation des Custom Nodes requis
