@@ -7,20 +7,23 @@ FROM runpod/worker-comfyui:5.5.0-base
 WORKDIR /workspace/runpod-slim/ComfyUI
 
 # =======================================================
-# ⚙️ 1️⃣ Création de la venv et installation de pip + git
+# ⚙️ 1️⃣ Sécurisation minimale du build (git + venv check)
 # =======================================================
-RUN apt update && apt install -y git python3-venv && \
-    python3 -m venv .venv && \
-    .venv/bin/pip install --upgrade pip
+RUN apt-get update -y && apt-get install -y git || true && \
+    # Si la venv n'existe pas, on la crée proprement
+    if [ ! -d "/workspace/runpod-slim/ComfyUI/.venv" ]; then \
+        echo "⚙️ Creating new venv for ComfyUI..."; \
+        python3 -m venv /workspace/runpod-slim/ComfyUI/.venv; \
+    else \
+        echo "✅ Existing venv detected, using it."; \
+    fi && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip
 
 # =======================================================
 # ⚙️ 2️⃣ Installation de UV + Upgrade PyTorch 2.9.0 (cu128)
 # =======================================================
-
-# Étape 1 — Installer uv dans la venv
 RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
 
-# Étape 2 — Utiliser uv pour gérer Torch
 RUN yes | /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
     rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-* && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
@@ -45,7 +48,6 @@ RUN yes | /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall to
 # =======================================================
 WORKDIR /workspace/runpod-slim/ComfyUI/custom_nodes
 
-# Clone des dépôts
 RUN git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
     git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
     git clone https://github.com/rgthree/rgthree-comfy.git && \
@@ -53,9 +55,6 @@ RUN git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
     git clone https://github.com/mit-han-lab/ComfyUI-nunchaku.git && \
     git clone https://github.com/yolain/ComfyUI-Easy-Use.git
 
-# =======================================================
-# 📦 4️⃣ Installation des requirements de chaque node
-# =======================================================
 RUN for d in ComfyUI-* rgthree-comfy; do \
       if [ -f "$d/requirements.txt" ]; then \
         echo "Installing deps for $d..." && \
@@ -69,3 +68,4 @@ RUN for d in ComfyUI-* rgthree-comfy; do \
 WORKDIR /workspace/runpod-slim/ComfyUI
 ENV PYTHONPATH="/workspace/runpod-slim/ComfyUI:$PYTHONPATH"
 ENV PATH="/workspace/runpod-slim/ComfyUI/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
