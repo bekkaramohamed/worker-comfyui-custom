@@ -71,18 +71,20 @@ RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
 WORKDIR /workspace/runpod-slim/ComfyUI/custom_nodes
 
 RUN set -e && \
-    apt-get update -y && apt-get install -y --no-install-recommends git ca-certificates && \
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends git ca-certificates curl && \
     update-ca-certificates && \
     echo "🌐 Vérification Git + accès GitHub..." && \
     git --version && curl -Is https://github.com >/dev/null 2>&1 && echo "✅ GitHub accessible." && \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
-    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
-    git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && \
-    git clone --depth 1 https://github.com/AlUlkesh/ComfyUI-TiledDiffusion.git && \
-    git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && \
-    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && \
+    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && sleep 5 && \
+    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && sleep 5 && \
+    git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && sleep 5 && \
+    git clone --depth 1 https://github.com/AlUlkesh/ComfyUI-TiledDiffusion.git && sleep 5 && \
+    git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && sleep 5 && \
+    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && sleep 5 && \
     ls -1 && \
     rm -rf /var/lib/apt/lists/*
+
 RUN for d in *; do \
       if [ -f "$d/requirements.txt" ]; then \
         echo "Installing deps for $d…" && \
