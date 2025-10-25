@@ -1,12 +1,21 @@
 # syntax=docker/dockerfile:1.4
 
-FROM runpod/comfyui:latest
+FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
+
+RUN mkdir -p /workspace && \
+    if [ -d "/runpod-volume/runpod-slim" ]; then \
+        ln -s /runpod-volume/runpod-slim /workspace/runpod-slim && \
+        echo "✅ Symlink /workspace/runpod-slim → /runpod-volume/runpod-slim created"; \
+    else \
+        echo "ℹ️ /runpod-volume not detected (probably running on a Pod)."; \
+    fi
 WORKDIR /workspace/runpod-slim/ComfyUI
 
 # =======================================================
 # ⚙️ 1️⃣ Git + venv + pip upgrade
 # =======================================================
-RUN set -e && \
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
     apt-get update -y && \
     apt-get install -y --no-install-recommends git ca-certificates python3-venv curl && \
     update-ca-certificates && \
@@ -23,9 +32,7 @@ RUN set -e && \
     else \
         echo "✅ Existing venv detected, using it."; \
     fi && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip && \
-    rm -rf /var/lib/apt/lists/*
-
+    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip
 
 
 # =======================================================
@@ -37,40 +44,44 @@ RUN if command -v nvidia-smi >/dev/null 2>&1 || [ -e "/dev/nvidia0" ]; then \
         echo "⚠️ Aucun GPU détecté, fallback CPU"; \
     fi
 
+
 # =======================================================
-# ⚙️ 2️⃣ Installation de uv et check Torch version
+# ⚙️ 2️⃣ Installation de uv
 # =======================================================
-RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
+RUN --mount=type=cache,target=/root/.cache \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
 
 
 # =======================================================
-# ⚙️ 2️⃣ Installation de Torch 2.6.0 (CUDA 12.4) + dépendances
+# ⚙️ 3️⃣ Installation de Torch 2.6.0 (CUDA 12.4) + dépendances
 # =======================================================
-RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
+RUN --mount=type=cache,target=/root/.cache \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
       torch==2.6.0 \
       torchvision==0.21.0 \
       torchaudio==2.6.0 \
       --index-url https://download.pytorch.org/whl/cu124 && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install numpy==1.26.4 && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install sageattention && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/python -c "import torch; print(f'Torch version: {torch.__version__}, CUDA: {torch.version.cuda}')" && \
-    rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-*
-
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -c "import torch; print(f'Torch version: {torch.__version__}, CUDA: {torch.version.cuda}')"
 
 
 # =======================================================
-# ⚙️ 3️⃣ Installation de Nunchaku v1.0.0 (Torch 2.6, Python 3.12)
+# ⚙️ 4️⃣ Installation de Nunchaku
 # =======================================================
-RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
+RUN --mount=type=cache,target=/root/.cache \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
     "https://github.com/nunchaku-tech/nunchaku/releases/download/v1.0.0/nunchaku-1.0.0+torch2.6-cp312-cp312-linux_x86_64.whl" \
     --no-cache-dir
 
+
 # =======================================================
-# 🧩 4️⃣ Installation des Custom Nodes
+# 🧩 5️⃣ Installation des Custom Nodes
 # =======================================================
 WORKDIR /workspace/runpod-slim/ComfyUI/custom_nodes
 
-RUN set -e && \
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
     apt-get update -y && \
     apt-get install -y --no-install-recommends git ca-certificates curl && \
     update-ca-certificates && \
@@ -78,19 +89,17 @@ RUN set -e && \
     git --version && \
     curl -Is https://github.com >/dev/null 2>&1 && echo "✅ GitHub accessible." && \
     export GIT_TERMINAL_PROMPT=0 && \
-    echo "🧪 Test clone public avec octocat/Hello-World..." && \
     git clone --depth 1 https://github.com/octocat/Hello-World.git && \
-    echo "✅ Test clone réussi, poursuite des installations..." && \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && sleep 3 && \
-    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && sleep 3 && \
-    git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && sleep 3 && \
+    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
+    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
+    git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && \
     git clone --depth 1 https://github.com/shiimizu/ComfyUI-TiledDiffusion.git && \
-    git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && sleep 3 && \
-    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && sleep 3 && \
-    echo "📂 Contenu du dossier : " && ls -1 && \
-    rm -rf /var/lib/apt/lists/*
+    git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && \
+    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && \
+    echo "📂 Contenu du dossier :" && ls -1
 
-RUN for d in *; do \
+RUN --mount=type=cache,target=/root/.cache \
+    for d in *; do \
       if [ -f "$d/requirements.txt" ]; then \
         echo "Installing deps for $d…" && \
         /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install -r "$d/requirements.txt" || true; \
@@ -99,7 +108,7 @@ RUN for d in *; do \
 
 
 # =======================================================
-# ✅ 5️⃣ Final setup
+# ✅ 6️⃣ Final setup
 # =======================================================
 WORKDIR /workspace/runpod-slim/ComfyUI
 ENV PYTHONPATH="/workspace/runpod-slim/ComfyUI:$PYTHONPATH"
