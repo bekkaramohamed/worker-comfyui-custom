@@ -12,12 +12,13 @@ RUN mkdir -p /workspace && \
 WORKDIR /workspace/runpod-slim/ComfyUI
 
 RUN apt-get update -y && \
-    apt-get install -y software-properties-common && \
+    apt-get install -y software-properties-common curl && \
     add-apt-repository ppa:deadsnakes/ppa -y && \
     apt-get update -y && \
     apt-get install -y python3.12 python3.12-venv python3.12-dev && \
     ln -sf /usr/bin/python3.12 /usr/bin/python3 && \
     python3 --version
+
 
 # =======================================================
 # ⚙️ 1️⃣ Git + venv + pip upgrade
