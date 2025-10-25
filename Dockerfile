@@ -11,13 +11,21 @@ RUN mkdir -p /workspace && \
     fi
 WORKDIR /workspace/runpod-slim/ComfyUI
 
+RUN apt-get update -y && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa -y && \
+    apt-get update -y && \
+    apt-get install -y python3.12 python3.12-venv python3.12-dev && \
+    ln -sf /usr/bin/python3.12 /usr/bin/python3 && \
+    python3 --version
+
 # =======================================================
 # ⚙️ 1️⃣ Git + venv + pip upgrade
 # =======================================================
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
     apt-get update -y && \
-    apt-get install -y --no-install-recommends git ca-certificates python3-venv curl && \
+    apt-get install -y --no-install-recommends git ca-certificates curl && \
     update-ca-certificates && \
     echo "🌐 Testing internet connectivity..." && \
     if curl -Is https://github.com >/dev/null 2>&1; then \
@@ -28,11 +36,15 @@ RUN --mount=type=cache,target=/var/cache/apt \
     fi && \
     if [ ! -d "/workspace/runpod-slim/ComfyUI/.venv" ]; then \
         echo "⚙️ Creating new venv for ComfyUI..."; \
-        python3 -m venv /workspace/runpod-slim/ComfyUI/.venv; \
+        python3.12 -m venv /workspace/runpod-slim/ComfyUI/.venv; \
+        /workspace/runpod-slim/ComfyUI/.venv/bin/python --version
+
     else \
         echo "✅ Existing venv detected, using it."; \
     fi && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip
+
+
 
 
 # =======================================================
@@ -122,6 +134,9 @@ ENV PYTHONUNBUFFERED=1
 # =======================================================
 # 🚀 7️⃣ Démarrage automatique de ComfyUI
 # =======================================================
+RUN rm -rf /var/lib/apt/lists/* /root/.cache
 
-CMD ["/workspace/runpod-slim/ComfyUI/.venv/bin/python", "main.py", "--port", "8188", "--listen", "0.0.0.0"]
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+CMD ["/bin/bash", "/start.sh"]
 
