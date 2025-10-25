@@ -59,19 +59,20 @@ RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
 # =======================================================
 WORKDIR /workspace/runpod-slim/ComfyUI/custom_nodes
 
-RUN git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
-    git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
-    git clone https://github.com/rgthree/rgthree-comfy.git && \
-    git clone https://github.com/AlUlkesh/ComfyUI-TiledDiffusion.git && \
-    git clone https://github.com/mit-han-lab/ComfyUI-nunchaku.git && \
-    git clone https://github.com/yolain/ComfyUI-Easy-Use.git
+RUN git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
+    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
+    git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && \
+    git clone --depth 1 https://github.com/AlUlkesh/ComfyUI-TiledDiffusion.git && \
+    git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && \
+    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git
 
-RUN for d in ComfyUI-* rgthree-comfy; do \
+RUN for d in *; do \
       if [ -f "$d/requirements.txt" ]; then \
-        echo "Installing deps for $d..." && \
+        echo "Installing deps for $d…" && \
         /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install -r "$d/requirements.txt" || true; \
       fi; \
     done
+
 
 # =======================================================
 # ✅ 5️⃣ Final setup
