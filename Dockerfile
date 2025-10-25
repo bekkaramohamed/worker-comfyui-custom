@@ -84,7 +84,7 @@ RUN set -e && \
     git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && sleep 3 && \
     git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && sleep 3 && \
     git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git && sleep 3 && \
-    git clone --depth 1 https://github.com/AlUlkesh/ComfyUI-TiledDiffusion.git && sleep 3 && \
+    git clone --depth 1 https://github.com/shiimizu/ComfyUI-TiledDiffusion.git && \
     git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && sleep 3 && \
     git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && sleep 3 && \
     echo "📂 Contenu du dossier : " && ls -1 && \
