@@ -5,7 +5,7 @@ FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
 RUN mkdir -p /workspace && \
     if [ -d "/runpod-volume/runpod-slim" ]; then \
         ln -s /runpod-volume/runpod-slim /workspace/runpod-slim && \
-        echo "✅ Symlink /workspace/runpod-slim → /runpod-volume/runpod-slim created"; \
+        echo "✅ Symlink /workspace/runpod-slim → /runpod-volume/runpod-slim created !"; \
     else \
         echo "ℹ️ /runpod-volume not detected (probably running on a Pod)."; \
     fi
