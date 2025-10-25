@@ -8,14 +8,15 @@ WORKDIR /workspace/runpod-slim/ComfyUI
 
 
 # =======================================================
-# ⚙️ 2️⃣ CUDA + PyTorch 2.9.0 (cu128)
+# ⚙️ 2️⃣ Installation de UV + Upgrade PyTorch 2.9.0 (cu128)
 # =======================================================
-# =======================================================
-# ⚙️ 2️⃣ PyTorch 2.9.0 (cu128) + nettoyage cache
-# =======================================================
+
+# Étape 1 — Installer git et uv dans la venv
 RUN apt update && apt install -y git && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv && \
-    yes | /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
+
+# Étape 2 — Utiliser uv pour gérer Torch
+RUN yes | /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
     rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-* && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
       torch==2.9.0+cu128 \
@@ -32,7 +33,7 @@ RUN apt update && apt install -y git && \
     export UV_LINK_MODE=copy && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
       git+https://github.com/nunchaku-tech/nunchaku.git@v1.0.0 \
-      --no-binary nunchaku --no-cache
+      --no-binary nunchaku --reinstall --no-cache
 
 # =======================================================
 # 🧩 3️⃣ Installation des Custom Nodes requis
