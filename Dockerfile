@@ -6,14 +6,19 @@ FROM runpod/worker-comfyui:5.5.0-base
 
 WORKDIR /workspace/runpod-slim/ComfyUI
 
+# =======================================================
+# ⚙️ 1️⃣ Création de la venv et installation de pip + git
+# =======================================================
+RUN apt update && apt install -y git python3-venv && \
+    python3 -m venv .venv && \
+    .venv/bin/pip install --upgrade pip
 
 # =======================================================
 # ⚙️ 2️⃣ Installation de UV + Upgrade PyTorch 2.9.0 (cu128)
 # =======================================================
 
-# Étape 1 — Installer git et uv dans la venv
-RUN apt update && apt install -y git && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
+# Étape 1 — Installer uv dans la venv
+RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
 
 # Étape 2 — Utiliser uv pour gérer Torch
 RUN yes | /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
