@@ -23,9 +23,7 @@ RUN apt-get update -y && \
 # =======================================================
 # ⚙️ 1️⃣ Git + venv + pip upgrade
 # =======================================================
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
-    apt-get update -y && \
+RUN apt-get update -y && \
     apt-get install -y --no-install-recommends git ca-certificates curl && \
     update-ca-certificates && \
     echo "🌐 Testing internet connectivity..." && \
@@ -35,14 +33,12 @@ RUN --mount=type=cache,target=/var/cache/apt \
         echo "❌ No internet access (cannot reach https://github.com)"; \
         exit 1; \
     fi && \
-    if [ ! -d "/workspace/runpod-slim/ComfyUI/.venv" ]; then \
-        echo "⚙️ Creating new venv for ComfyUI..."; \
-        python3.12 -m venv /workspace/runpod-slim/ComfyUI/.venv; \
-        /workspace/runpod-slim/ComfyUI/.venv/bin/python --version
-
-    else \
-        echo "✅ Existing venv detected, using it."; \
-    fi && \
+    echo "🧹 Removing any existing virtual environment..." && \
+    rm -rf /workspace/runpod-slim/ComfyUI/.venv && \
+    echo "⚙️ Creating new venv for ComfyUI (Python 3.12)..." && \
+    python3.12 -m venv /workspace/runpod-slim/ComfyUI/.venv && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python --version && \
+    echo "⬆️ Upgrading pip..." && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip
 
 
