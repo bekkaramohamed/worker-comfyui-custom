@@ -7,7 +7,9 @@ WORKDIR /workspace/runpod-slim/ComfyUI
 # ⚙️ 1️⃣ Git + venv + pip upgrade
 # =======================================================
 RUN set -e && \
-    apt-get update -y && apt-get install -y git python3-venv && \
+    apt-get update -y && \
+    apt-get install -y git ca-certificates python3-venv && \
+    update-ca-certificates && \
     if [ ! -d "/workspace/runpod-slim/ComfyUI/.venv" ]; then \
         echo "⚙️ Creating new venv for ComfyUI..."; \
         python3 -m venv /workspace/runpod-slim/ComfyUI/.venv; \
@@ -16,6 +18,7 @@ RUN set -e && \
     fi && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip && \
     rm -rf /var/lib/apt/lists/*
+
 
 # =======================================================
 # 🔍 GPU Check (log only)
