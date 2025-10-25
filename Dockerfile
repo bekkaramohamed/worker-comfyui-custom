@@ -6,21 +6,6 @@ FROM runpod/worker-comfyui:5.5.0-base
 
 WORKDIR /workspace/runpod-slim/ComfyUI
 
-# =======================================================
-# 🐍 1️⃣ Mise à jour du système et installation Python 3.11
-# =======================================================
-RUN PYTHON_VER=$(python3 -c "import sys; print(f'python{sys.version_info.major}.{sys.version_info.minor}')") && \
-    ln -sf /usr/lib/python3/dist-packages/apt_pkg.cpython-*.so /usr/lib/$PYTHON_VER/dist-packages/apt_pkg.so 2>/dev/null || true && \
-    apt update -y && \
-    apt install -y software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa -y && \
-    apt update -y && \
-    apt install -y python3.11 python3.11-venv python3.11-distutils && \
-    echo -e '\n# Python 3.11 global\nalias python=python3.11\nalias python3=python3.11' >> ~/.bashrc && \
-    source ~/.bashrc && \
-    python3.11 -m ensurepip --upgrade && \
-    python3.11 -m pip install --upgrade pip && \
-    python3.11 -m pip -V
 
 # =======================================================
 # ⚙️ 2️⃣ CUDA + PyTorch 2.9.0 (cu128)
