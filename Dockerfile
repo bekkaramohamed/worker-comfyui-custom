@@ -10,7 +10,10 @@ WORKDIR /workspace/runpod-slim/ComfyUI
 # =======================================================
 # ⚙️ 2️⃣ CUDA + PyTorch 2.9.0 (cu128)
 # =======================================================
-RUN apt update && apt install -y cuda-toolkit-12-4 libcublas-12-4 libcublas-dev-12-4 && \
+# =======================================================
+# ⚙️ 2️⃣ PyTorch 2.9.0 (cu128) + nettoyage cache
+# =======================================================
+RUN apt update && apt install -y git && \
     yes | /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
     rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-* && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
@@ -32,6 +35,7 @@ RUN apt update && apt install -y cuda-toolkit-12-4 libcublas-12-4 libcublas-dev-
       --no-binary nunchaku \
       --reinstall \
       --no-cache
+
 
 # =======================================================
 # 🧩 3️⃣ Installation des Custom Nodes requis
