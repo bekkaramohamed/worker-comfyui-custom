@@ -118,3 +118,10 @@ WORKDIR /workspace/runpod-slim/ComfyUI
 ENV PYTHONPATH="/workspace/runpod-slim/ComfyUI:$PYTHONPATH"
 ENV PATH="/workspace/runpod-slim/ComfyUI/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
+
+# =======================================================
+# 🚀 7️⃣ Démarrage automatique de ComfyUI
+# =======================================================
+
+CMD ["/workspace/runpod-slim/ComfyUI/.venv/bin/python", "main.py", "--port", "8188", "--listen", "0.0.0.0"]
+
