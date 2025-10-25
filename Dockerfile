@@ -8,8 +8,15 @@ WORKDIR /workspace/runpod-slim/ComfyUI
 # =======================================================
 RUN set -e && \
     apt-get update -y && \
-    apt-get install -y git ca-certificates python3-venv && \
+    apt-get install -y --no-install-recommends git ca-certificates python3-venv curl && \
     update-ca-certificates && \
+    echo "🌐 Testing internet connectivity..." && \
+    if curl -Is https://github.com >/dev/null 2>&1; then \
+        echo "✅ Internet access confirmed."; \
+    else \
+        echo "❌ No internet access (cannot reach https://github.com)"; \
+        exit 1; \
+    fi && \
     if [ ! -d "/workspace/runpod-slim/ComfyUI/.venv" ]; then \
         echo "⚙️ Creating new venv for ComfyUI..."; \
         python3 -m venv /workspace/runpod-slim/ComfyUI/.venv; \
@@ -18,6 +25,7 @@ RUN set -e && \
     fi && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip && \
     rm -rf /var/lib/apt/lists/*
+
 
 
 # =======================================================
