@@ -41,10 +41,19 @@ RUN apt-get update -y && apt-get install -y git || true && \
     fi && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip
 
+# =======================================================
+# 🔍 GPU Check + Safe Fallback (persistent)
+# =======================================================
+RUN echo "=== 🔍 Vérification GPU avant build Nunchaku ===" && \
+    if command -v nvidia-smi >/dev/null 2>&1 || [ -e "/dev/nvidia0" ]; then \
+        echo "✅ GPU détecté (build GPU)"; \
+        echo "NUNCHAKU_FORCE_CPU_BUILD=0" >> /etc/environment; \
+    else \
+        echo "⚠️ Aucun GPU détecté, fallback CPU forcé"; \
+        echo "NUNCHAKU_FORCE_CPU_BUILD=1" >> /etc/environment; \
+    fi && \
+    echo "=== ✅ Vérification terminée ==="
 
-# =======================================================
-# ⚙️ 2️⃣ Installation de UV + Upgrade PyTorch 2.9.0 (cu128)
-# =======================================================
 # =======================================================
 # ⚙️ 2️⃣ Installation de UV + PyTorch 2.9.0 (cu128)
 # =======================================================
@@ -52,21 +61,21 @@ RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip uninstall torch torchvision torchaudio triton && \
     rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-* && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
-        torch==2.9.0+cu128 \
-        torchvision==0.24.0+cu128 \
-        torchaudio==2.9.0+cu128 \
-        triton==3.5.0 \
-        --extra-index-url https://download.pytorch.org/whl/cu128 && \
+    torch==2.8.0+cu128 \
+    torchvision==0.23.0+cu128 \
+    torchaudio==2.8.0+cu128 \
+    triton==3.4.0 \
+    --extra-index-url https://download.pytorch.org/whl/cu128
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install numpy==1.26.4 sageattention && \
     rm -rf /workspace/runpod-slim/ComfyUI/.venv/lib/python3.12/site-packages/nunchaku*
 
 # =======================================================
-# ⚙️ 3️⃣ Compilation et installation de Nunchaku
+# ⚙️ 3️⃣ Installation de Nunchaku (via wheel précompilée)
 # =======================================================
-RUN TORCH_CUDA_ARCH_LIST="8.9" FORCE_CMAKE=1 MAX_JOBS=$(nproc) USE_TORCH_VERSION=2.9.0 UV_LINK_MODE=copy \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
-        git+https://github.com/nunchaku-tech/nunchaku.git@v1.0.0 \
-        --no-binary nunchaku --reinstall --no-cache
+RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
+    "https://github.com/nunchaku-tech/nunchaku/releases/download/v1.0.1/nunchaku-1.0.1+torch2.8-cp312-cp312-linux_x86_64.whl" \
+    --no-cache-dir
+
 
 # =======================================================
 # 🧩 3️⃣ Installation des Custom Nodes requis
