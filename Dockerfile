@@ -29,14 +29,28 @@ RUN if command -v nvidia-smi >/dev/null 2>&1 || [ -e "/dev/nvidia0" ]; then \
 # =======================================================
 # ⚙️ 2️⃣ Installation de uv et check Torch version
 # =======================================================
-RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/python -c "import torch; print(f'Torch version: {torch.__version__}, CUDA: {torch.version.cuda}')"
+RUN /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
+
 
 # =======================================================
-# ⚙️ 3️⃣ Installation de Nunchaku (wheel Torch 2.6)
+# ⚙️ 2️⃣ Installation de Torch 2.6.0 (CUDA 12.4) + dépendances
 # =======================================================
 RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
-    'https://github.com/nunchaku-tech/nunchaku/releases/download/v1.0.1/nunchaku-1.0.1+torch2.6-cp312-cp312-linux_x86_64.whl' \
+      torch==2.6.0 \
+      torchvision==0.21.0 \
+      torchaudio==2.6.0 \
+      --index-url https://download.pytorch.org/whl/cu124 && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install numpy==1.26.4 && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/pip install sageattention && \
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -c "import torch; print(f'Torch version: {torch.__version__}, CUDA: {torch.version.cuda}')"
+    rm -rf /root/.cache/uv /root/.cache/pip /root/.cache/torch_extensions /tmp/pip-*
+
+
+# =======================================================
+# ⚙️ 3️⃣ Installation de Nunchaku v1.0.0 (Torch 2.6, Python 3.12)
+# =======================================================
+RUN /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
+    "https://github.com/nunchaku-tech/nunchaku/releases/download/v1.0.0/nunchaku-1.0.0+torch2.6-cp312-cp312-linux_x86_64.whl" \
     --no-cache-dir
 
 # =======================================================
