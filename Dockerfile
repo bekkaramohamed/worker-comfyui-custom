@@ -78,7 +78,8 @@ RUN --mount=type=cache,target=/root/.cache \
 # =======================================================
 # 🧩 5️⃣ Installation des Custom Nodes
 # =======================================================
-WORKDIR /workspace/runpod-slim/ComfyUI/custom_nodes
+
+WORKDIR /workspace/runpod-slim/ComfyUI
 
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
@@ -89,6 +90,9 @@ RUN --mount=type=cache,target=/var/cache/apt \
     git --version && \
     curl -Is https://github.com >/dev/null 2>&1 && echo "✅ GitHub accessible." && \
     export GIT_TERMINAL_PROMPT=0 && \
+    echo "🧹 Suppression de l'ancien dossier custom_nodes..." && \
+    rm -rf custom_nodes && mkdir -p custom_nodes && cd custom_nodes && \
+    echo "📦 Clonage des Custom Nodes..." && \
     git clone --depth 1 https://github.com/octocat/Hello-World.git && \
     git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
     git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
@@ -96,7 +100,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
     git clone --depth 1 https://github.com/shiimizu/ComfyUI-TiledDiffusion.git && \
     git clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && \
     git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && \
-    echo "📂 Contenu du dossier :" && ls -1
+    echo "📂 Contenu final du dossier custom_nodes :" && ls -1 custom_nodes
 
 RUN --mount=type=cache,target=/root/.cache \
     for d in *; do \
