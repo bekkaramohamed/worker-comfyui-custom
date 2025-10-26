@@ -111,8 +111,7 @@ def encode_outputs() -> list:
             file_type = "video" if file.suffix in [".mp4", ".webm"] else "image"
             results.append({
                 "filename": file.name,
-                "type": file_type,
-                "encoding": "base64",
+                "type": "base64",
                 "data": encoded
             })
     return results
