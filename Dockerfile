@@ -3,65 +3,55 @@ FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# =======================================================
+# 📁 Préparation du workspace
+# =======================================================
 RUN mkdir -p /workspace && \
     if [ -d "/runpod-volume/runpod-slim" ]; then \
         ln -s /runpod-volume/runpod-slim /workspace/runpod-slim && \
-        echo "✅ Symlink /workspace/runpod-slim → /runpod-volume/runpod-slim created :!"; \
+        echo "✅ Symlink /workspace/runpod-slim → /runpod-volume/runpod-slim created!"; \
     else \
         echo "ℹ️ /runpod-volume not detected (probably running on a Pod)."; \
     fi
 WORKDIR /workspace/runpod-slim/ComfyUI
 
-RUN apt-get update -y && \
+# =======================================================
+# 🧩 Installation de base (Git, Curl, Certs)
+# =======================================================
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update -y && \
     apt-get install -y --no-install-recommends git curl ca-certificates && \
     update-ca-certificates && \
-    echo "✅ Python 3.12 + Debian slim ready" && \
+    echo "✅ Base system ready with Python 3.12" && \
     python3 --version && pip --version
 
-
 # =======================================================
-# ⚙️ 1️⃣ Git + venv + pip upgrade
+# ⚙️ Création du venv + mise à jour pip
 # =======================================================
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends git ca-certificates curl && \
-    update-ca-certificates && \
-    echo "🌐 Testing internet connectivity..." && \
-    if curl -Is https://github.com >/dev/null 2>&1; then \
-        echo "✅ Internet access confirmed."; \
-    else \
-        echo "❌ No internet access (cannot reach https://github.com)"; \
-        exit 1; \
-    fi && \
-    echo "🧹 Removing any existing virtual environment..." && \
+RUN echo "🧹 Removing any existing virtual environment..." && \
     rm -rf /workspace/runpod-slim/ComfyUI/.venv && \
     echo "⚙️ Creating new venv for ComfyUI (Python 3.12)..." && \
     python3.12 -m venv /workspace/runpod-slim/ComfyUI/.venv && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/python --version && \
-    echo "⬆️ Upgrading pip..." && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install --upgrade pip
 
-
-
-
 # =======================================================
-# 🔍 GPU Check (log only)
+# 🔍 GPU Check
 # =======================================================
 RUN if command -v nvidia-smi >/dev/null 2>&1 || [ -e "/dev/nvidia0" ]; then \
-        echo "✅ GPU détecté"; \
+        echo "✅ GPU detected"; \
     else \
-        echo "⚠️ Aucun GPU détecté, fallback CPU"; \
+        echo "⚠️ No GPU detected, fallback CPU"; \
     fi
 
-
 # =======================================================
-# ⚙️ 2️⃣ Installation de uv
+# ⚙️ Installation de uv (gestionnaire rapide de deps)
 # =======================================================
 RUN --mount=type=cache,target=/root/.cache \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install uv
 
-
 # =======================================================
-# ⚙️ 3️⃣ Installation de Torch 2.6.0 (CUDA 12.4) + dépendances
+# ⚙️ Torch 2.6.0 (CUDA 12.4) + dépendances
 # =======================================================
 RUN --mount=type=cache,target=/root/.cache \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
@@ -71,50 +61,21 @@ RUN --mount=type=cache,target=/root/.cache \
       --index-url https://download.pytorch.org/whl/cu124 && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install numpy==1.26.4 && \
     /workspace/runpod-slim/ComfyUI/.venv/bin/pip install sageattention && \
-    /workspace/runpod-slim/ComfyUI/.venv/bin/python -c "import torch; print(f'Torch version: {torch.__version__}, CUDA: {torch.version.cuda}')"
-
+    /workspace/runpod-slim/ComfyUI/.venv/bin/python -c "import torch; print(f'Torch: {torch.__version__}, CUDA: {torch.version.cuda}')"
 
 # =======================================================
-# ⚙️ 4️⃣ Installation de Nunchaku
+# ⚙️ Installation de Nunchaku
 # =======================================================
 RUN --mount=type=cache,target=/root/.cache \
     /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install \
     "https://github.com/nunchaku-tech/nunchaku/releases/download/v1.0.0/nunchaku-1.0.0+torch2.6-cp312-cp312-linux_x86_64.whl" \
     --no-cache-dir
 
-
-WORKDIR /workspace/runpod-slim/ComfyUI
-
 # =======================================================
-# 🧩 Vérification Git + accès Internet
-# =======================================================
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
-    apt-get update -y && \
-    apt-get install -y --no-install-recommends git ca-certificates curl && \
-    update-ca-certificates && \
-    echo "🌐 Vérification Git + accès GitHub..." && \
-    git --version && \
-    if curl -Is https://github.com >/dev/null 2>&1; then \
-        echo "✅ GitHub accessible."; \
-    else \
-        echo "❌ Erreur : GitHub inaccessible."; \
-        exit 1; \
-    fi && \
-    export GIT_TERMINAL_PROMPT=0
-
-
-# =======================================================
-# 🧹 Réinitialisation et clonage des Custom Nodes
+# 🧹 Clonage et nettoyage des Custom Nodes
 # =======================================================
 RUN echo "🧹 Vérification du dossier custom_nodes..." && \
-    if [ -d "custom_nodes" ]; then \
-        echo "⚠️ Dossier custom_nodes existant détecté — suppression..."; \
-        rm -rf custom_nodes; \
-    else \
-        echo "✅ Aucun dossier custom_nodes existant — création..."; \
-    fi && \
-    mkdir -p custom_nodes && \
+    rm -rf custom_nodes && mkdir -p custom_nodes && \
     echo "📦 Clonage des Custom Nodes..." && \
     git -C custom_nodes clone --depth 1 https://github.com/octocat/Hello-World.git && \
     git -C custom_nodes clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git && \
@@ -123,20 +84,22 @@ RUN echo "🧹 Vérification du dossier custom_nodes..." && \
     git -C custom_nodes clone --depth 1 https://github.com/shiimizu/ComfyUI-TiledDiffusion.git && \
     git -C custom_nodes clone --depth 1 https://github.com/mit-han-lab/ComfyUI-nunchaku.git && \
     git -C custom_nodes clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git && \
-    echo "📂 Contenu final du dossier custom_nodes :" && \
-    ls -1 custom_nodes
+    find custom_nodes -type d -name ".git" -exec rm -rf {} + && \
+    echo "📂 Contenu final :" && ls -1 custom_nodes
 
+# =======================================================
+# ⚙️ Installation requirements des nodes (sans deps dupliquées)
+# =======================================================
 RUN --mount=type=cache,target=/root/.cache \
-    for d in *; do \
+    for d in custom_nodes/*; do \
       if [ -f "$d/requirements.txt" ]; then \
         echo "Installing deps for $d…" && \
-        /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install -r "$d/requirements.txt" || true; \
+        /workspace/runpod-slim/ComfyUI/.venv/bin/python -m uv pip install --no-deps -r "$d/requirements.txt" || true; \
       fi; \
     done
 
-
 # =======================================================
-# ✅ 6️⃣ Final setup
+# ✅ Final setup
 # =======================================================
 WORKDIR /workspace/runpod-slim/ComfyUI
 ENV PYTHONPATH="/workspace/runpod-slim/ComfyUI:$PYTHONPATH"
@@ -144,11 +107,13 @@ ENV PATH="/workspace/runpod-slim/ComfyUI/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
 # =======================================================
-# 🚀 7️⃣ Démarrage automatique de ComfyUI
+# 🧹 Nettoyage final
 # =======================================================
-RUN rm -rf /var/lib/apt/lists/* /root/.cache
+RUN rm -rf /root/.cache /var/lib/apt/lists/* /tmp/* custom_nodes/**/.git
 
+# =======================================================
+# 🚀 Entrypoint
+# =======================================================
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 CMD ["/bin/bash", "/start.sh"]
-
