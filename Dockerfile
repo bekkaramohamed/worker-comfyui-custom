@@ -81,7 +81,4 @@ RUN rm -rf /root/.cache /tmp/* /var/lib/apt/lists/*
 # Si tu veux fournir des images ou fichiers par défaut à ComfyUI :
 # COPY input/ /comfyui/input/
 
-# =======================================================
-# 🚀 Entrypoint officiel (ne pas modifier)
-# =======================================================
-CMD ["/start.sh"]
+
