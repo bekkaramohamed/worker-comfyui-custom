@@ -116,4 +116,18 @@ RUN rm -rf /root/.cache /var/lib/apt/lists/* /tmp/* custom_nodes/**/.git
 # =======================================================
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
-CMD ["/bin/bash", "/start.sh"]
+
+# 🧠 Debug mode : on affiche tout ce qu'il fait avant crash
+CMD ["/bin/bash", "-c", "\
+    set -euxo pipefail; \
+    echo '🔍 Container starting...'; \
+    echo '🗂 Current directory:' && pwd && ls -la; \
+    echo '📁 Checking /workspace:' && ls -la /workspace || true; \
+    echo '📁 Checking /workspace/runpod-slim:' && ls -la /workspace/runpod-slim || true; \
+    echo '📁 Checking /workspace/runpod-slim/ComfyUI:' && ls -la /workspace/runpod-slim/ComfyUI || true; \
+    echo '🐍 Python binary:' && which python3 || true; \
+    echo '📦 Python version:' && python3 --version || true; \
+    echo '💾 Virtual env:' && ls -la /workspace/runpod-slim/ComfyUI/.venv/bin || true; \
+    echo '✅ Attempting to run /start.sh...'; \
+    /bin/bash /start.sh || (echo '❌ /start.sh failed with code $?'; sleep 60) \
+"]
