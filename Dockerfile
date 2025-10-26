@@ -45,45 +45,68 @@ RUN echo "📦 Cloning manual custom nodes..." && \
     done
 
 # =======================================================
-# 💾 Téléchargement des modèles Hugging Face
+# 💾 Téléchargement des modèles Hugging Face (méthode officielle)
 # =======================================================
+
 ENV HF_TOKEN="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"
 
-RUN echo "🧠 Downloading base models from Hugging Face..." && \
-    mkdir -p /comfyui/models/{diffusion_models,clip,vae,upscale_models,loras,clip_vision,wav2vec2} && \
+RUN echo "🧠 Downloading base models using comfy-cli..." && \
     set -eux; \
-    # --- FLUX DiT Loader (FP4)
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/diffusion_models/svdq-fp4_r32-fluxmania-legacy.safetensors \
-      https://huggingface.co/spooknik/Fluxmania-SVDQ/resolve/main/svdq-fp4_r32-fluxmania-legacy.safetensors && \
-    # --- FLUX DiT Loader (INT7)
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/diffusion_models/svdq-int4_r32-fluxmania-legacy.safetensors \
-      https://huggingface.co/spooknik/Fluxmania-SVDQ/resolve/main/svdq-int4_r32-fluxmania-legacy.safetensors?download=true && \
+    # --- FLUX DiT Loader (FP4 pour RTX 50xx)
+    comfy model download \
+      --url https://huggingface.co/spooknik/Fluxmania-SVDQ/resolve/main/svdq-fp4_r32-fluxmania-legacy.safetensors \
+      --relative-path models/diffusion_models \
+      --filename svdq-fp4_r32-fluxmania-legacy.safetensors && \
+    # --- FLUX DiT Loader (INT4 pour RTX 40xx)
+    comfy model download \
+      --url https://huggingface.co/spooknik/Fluxmania-SVDQ/resolve/main/svdq-int4_r32-fluxmania-legacy.safetensors?download=true \
+      --relative-path models/diffusion_models \
+      --filename svdq-int4_r32-fluxmania-legacy.safetensors && \
     # --- Text Encoder Loader V2
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/clip/clip_l.safetensors \
-      https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors && \
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/clip/t5xxl_fp8_e4m3fn_scaled.safetensors \
-      https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn_scaled.safetensors && \
-    # --- VAE
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/vae/ae.safetensors \
-      https://huggingface.co/Comfy-Org/Lumina_Image_2.0_Repackaged/resolve/main/split_files/vae/ae.safetensors && \
-    # --- Upscale Model
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/upscale_models/4xNomos2_hq_dat2.safetensors \
-      https://huggingface.co/Phips/4xNomos2_hq_dat2/resolve/main/4xNomos2_hq_dat2.safetensors && \
+    comfy model download \
+      --url https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors \
+      --relative-path models/clip \
+      --filename clip_l.safetensors && \
+    comfy model download \
+      --url https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn_scaled.safetensors \
+      --relative-path models/clip \
+      --filename t5xxl_fp8_e4m3fn_scaled.safetensors && \
+    # --- VAE principal (Lumina)
+    comfy model download \
+      --url https://huggingface.co/Comfy-Org/Lumina_Image_2.0_Repackaged/resolve/main/split_files/vae/ae.safetensors \
+      --relative-path models/vae \
+      --filename ae.safetensors && \
+    # --- Upscale model
+    comfy model download \
+      --url https://huggingface.co/Phips/4xNomos2_hq_dat2/resolve/main/4xNomos2_hq_dat2.safetensors \
+      --relative-path models/upscale_models \
+      --filename 4xNomos2_hq_dat2.safetensors && \
     # --- Flux Kontext diffusion model
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors \
-      https://huggingface.co/Comfy-Org/flux1-kontext-dev_ComfyUI/resolve/main/split_files/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors && \
+    comfy model download \
+      --url https://huggingface.co/Comfy-Org/flux1-kontext-dev_ComfyUI/resolve/main/split_files/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors \
+      --relative-path models/diffusion_models \
+      --filename flux1-dev-kontext_fp8_scaled.safetensors && \
     # --- WanVideo VAE
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/vae/wan_2.1_vae.safetensors \
-      https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors && \
+    comfy model download \
+      --url https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors \
+      --relative-path models/vae \
+      --filename wan_2.1_vae.safetensors && \
     # --- WanVideo CLIP Vision
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/clip/clip_vision_h.safetensors \
-      https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors && \
-    # --- Text Encoder UMT5
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/clip/umt5-xxl-enc-bf16.safetensors \
-      https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-enc-bf16.safetensors && \
+    comfy model download \
+      --url https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors \
+      --relative-path models/clip_vision \
+      --filename clip_vision_h.safetensors && \
+    # --- Text Encoder (UMT5)
+    comfy model download \
+      --url https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/umt5-xxl-enc-bf16.safetensors \
+      --relative-path models/clip \
+      --filename umt5-xxl-enc-bf16.safetensors && \
     # --- Wav2Vec2 audio model
-    curl -L -H "Authorization: Bearer ${HF_TOKEN}" -o /comfyui/models/wav2vec2/wav2vec2-chinese-base_fp16.safetensors \
-      https://huggingface.co/Kijai/wav2vec2_safetensors/resolve/main/wav2vec2-chinese-base_fp16.safetensors?download=true
+    comfy model download \
+      --url https://huggingface.co/Kijai/wav2vec2_safetensors/resolve/main/wav2vec2-chinese-base_fp16.safetensors?download=true \
+      --relative-path models/wav2vec2 \
+      --filename wav2vec2-chinese-base_fp16.safetensors
+
 
 # =======================================================
 # ✅ Vérifications
